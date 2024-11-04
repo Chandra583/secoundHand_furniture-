@@ -1,4 +1,4 @@
-const ApiError = require('../utils/apiResponse');
+import { ApiError } from '../utils/apiResponse.js';
 
 const errorHandler = (err, req, res, next) => {
   console.error(err);
@@ -46,4 +46,4 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
-module.exports = errorHandler; 
+export default errorHandler; 

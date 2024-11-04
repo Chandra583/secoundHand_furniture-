@@ -1,7 +1,40 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const Order = require('../models/Order');
-const catchAsync = require('../utils/catchAsync');
-const ApiError = require('../utils/apiResponse');
+import Stripe from 'stripe';
+import Order from '../models/Order.js';
+import catchAsync from '../utils/catchAsync.js';
+import { ApiError } from '../utils/apiResponse.js';
+import { body } from 'express-validator';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+export const paymentSchema = {
+  createPayment: [
+    body('orderId')
+      .trim()
+      .notEmpty()
+      .withMessage('Order ID is required')
+      .isMongoId()
+      .withMessage('Invalid order ID')
+  ],
+  confirmPayment: [
+    body('orderId')
+      .trim() 
+      .notEmpty()
+      .withMessage('Order ID is required')
+      .isMongoId()
+      .withMessage('Invalid order ID'),
+    body('paymentIntentId')
+      .trim()
+      .notEmpty()
+      .withMessage('Payment intent ID is required')
+  ],
+  refundPayment: [
+    body('reason')
+      .optional()
+      .trim()
+      .isIn(['duplicate', 'fraudulent', 'requested_by_customer'])
+      .withMessage('Invalid refund reason')
+  ]
+};
 
 const paymentController = {
   createPaymentIntent: catchAsync(async (req, res) => {
@@ -53,36 +86,29 @@ const paymentController = {
 
   getPaymentStatus: catchAsync(async (req, res) => {
     const { paymentIntentId } = req.params;
-
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
     res.json({
       success: true,
       status: paymentIntent.status,
     });
   }),
 
+  getTransactions: catchAsync(async (req, res) => {
+    const paymentIntents = await stripe.paymentIntents.list({
+      limit: 100,
+    });
+    res.json({
+      success: true,
+      transactions: paymentIntents.data,
+    });
+  }),
+
   refundPayment: catchAsync(async (req, res) => {
     const { orderId } = req.params;
     const { reason } = req.body;
-
-    const order = await Order.findById(orderId);
-    if (!order) {
-      throw new ApiError('Order not found', 404);
-    }
-
-    if (!order.paymentId) {
-      throw new ApiError('No payment found for this order', 400);
-    }
-
-    const refund = await stripe.refunds.create({
-      payment_intent: order.paymentId,
-      reason: reason || 'requested_by_customer',
-    });
-
-    order.paymentStatus = 'refunded';
-    await order.save();
-
+    
+    const refund = await processRefund(orderId);
+    
     res.json({
       success: true,
       refund,
@@ -90,4 +116,4 @@ const paymentController = {
   }),
 };
 
-module.exports = paymentController; 
+export default paymentController;

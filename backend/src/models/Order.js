@@ -1,53 +1,40 @@
-const mongoose = require('mongoose');
-const { ORDER_STATUS, PAYMENT_STATUS } = require('../config/constants');
+import mongoose from 'mongoose';
 
 const orderSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: true
   },
   items: [{
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
-      required: true,
+      required: true
     },
     quantity: {
       type: Number,
       required: true,
-      min: 1,
-    },
-    price: {
-      type: Number,
-      required: true,
-    },
+      min: 1
+    }
   }],
   shippingAddress: {
-    street: String,
-    city: String,
-    state: String,
-    zipCode: String,
-    country: String,
+    type: String,
+    required: true
   },
   totalAmount: {
     type: Number,
-    required: true,
+    required: true
   },
   status: {
     type: String,
-    enum: Object.values(ORDER_STATUS),
-    default: ORDER_STATUS.PENDING,
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+    default: 'pending'
   },
-  paymentStatus: {
-    type: String,
-    enum: Object.values(PAYMENT_STATUS),
-    default: PAYMENT_STATUS.PENDING,
-  },
-  paymentId: String,
-  trackingNumber: String,
-}, {
-  timestamps: true,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-module.exports = mongoose.model('Order', orderSchema); 
+export default mongoose.model('Order', orderSchema); 

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "E-commerce backend API",
   "main": "src/server.js",
+  "type": "module",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
@@ -16,6 +17,7 @@
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
     "express-validator": "^7.0.1",
+    "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
@@ -31,4 +33,4 @@
     "nodemon": "^3.0.2",
     "supertest": "^6.3.3"
   }
-} 
+}

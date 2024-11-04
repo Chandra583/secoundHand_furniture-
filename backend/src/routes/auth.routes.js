@@ -1,29 +1,32 @@
-const express = require('express');
-const router = express.Router();
-const authController = require('../controllers/authController');
-const { validateRequest } = require('../middleware/validate');
-const auth = require('../middleware/auth');
-
-// Validation schemas
-const {
+import express from "express";
+import { validateRequest } from "../middleware/validate.js";
+import { auth } from "../middleware/auth.js";
+import { register, login, logout, resetPassword, forgotPassword } from "../controllers/authController.js";
+import {
   registerSchema,
   loginSchema,
   passwordResetSchema,
-} = require('../utils/validation');
+} from "../utils/validation.js";
 
-router.post('/register', validateRequest(registerSchema), authController.register);
-router.post('/login', validateRequest(loginSchema), authController.login);
-router.post('/forgot-password', authController.forgotPassword);
+const router = express.Router();
+
 router.post(
-  '/reset-password',
-  validateRequest(passwordResetSchema),
-  authController.resetPassword
+  "/register",
+  validateRequest(registerSchema),
+  register
 );
+router.post("/login", validateRequest(loginSchema), login);
+router.post("/logout", auth, logout);
+router.post(
+  "/reset-password",
+  validateRequest(passwordResetSchema),
+  resetPassword
+);
+router.post("/forgot-password", forgotPassword);
 
 // Protected routes
-router.get('/me', auth, (req, res) => {
+router.get("/me", auth, (req, res) => {
   res.json({ user: req.user });
 });
-router.post('/logout', auth, authController.logout);
 
-module.exports = router; 
+export default router;

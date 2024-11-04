@@ -1,76 +1,25 @@
-const nodemailer = require('nodemailer');
-const { SMTP } = require('../config/constants');
-const { createEmailTemplate } = require('../utils/sendEmail');
-const { logger } = require('../middleware/logger');
+import nodemailer from 'nodemailer';
+import { ApiError } from '../utils/apiResponse.js';
 
-class EmailService {
-  constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: SMTP.HOST,
-      port: SMTP.PORT,
-      secure: SMTP.PORT === 465,
-      auth: {
-        user: SMTP.USER,
-        pass: SMTP.PASS,
-      },
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+export const sendEmail = async ({ to, subject, text, html }) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM,
+      to,
+      subject,
+      text,
+      html,
     });
+  } catch (error) {
+    throw new ApiError('Email sending failed', 500);
   }
-
-  async sendEmail(options) {
-    try {
-      const { to, type, data, subject, html } = options;
-      
-      let emailContent;
-      if (type) {
-        emailContent = createEmailTemplate(type, data);
-      } else {
-        emailContent = { subject, html };
-      }
-
-      const info = await this.transporter.sendMail({
-        from: `"${process.env.APP_NAME}" <${SMTP.USER}>`,
-        to,
-        subject: emailContent.subject,
-        html: emailContent.html,
-      });
-
-      logger.info(`Email sent: ${info.messageId}`);
-      return info;
-    } catch (error) {
-      logger.error('Email sending failed:', error);
-      throw error;
-    }
-  }
-
-  async sendWelcomeEmail(user) {
-    return this.sendEmail({
-      to: user.email,
-      type: 'welcome',
-      data: { name: user.name },
-    });
-  }
-
-  async sendOrderConfirmation(order, user) {
-    return this.sendEmail({
-      to: user.email,
-      type: 'orderConfirmation',
-      data: {
-        orderId: order._id,
-        amount: order.totalAmount,
-        estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      },
-    });
-  }
-
-  async sendPasswordReset(user, resetToken) {
-    return this.sendEmail({
-      to: user.email,
-      type: 'passwordReset',
-      data: {
-        resetLink: `${process.env.FRONTEND_URL}/reset-password/${resetToken}`,
-      },
-    });
-  }
-}
-
-module.exports = new EmailService(); 
+}; 

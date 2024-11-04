@@ -1,33 +1,18 @@
-const { validationResult } = require('express-validator');
-const ApiError = require('../utils/apiResponse');
+import { validationResult } from 'express-validator';
+import rateLimit from 'express-rate-limit';
 
-const validateRequest = (schema) => {
+export const validateRequest = (validations) => {
   return async (req, res, next) => {
-    try {
-      await Promise.all(schema.map(validation => validation.run(req)));
-
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        throw new ApiError('Validation Error', 400, errors.array());
-      }
-
-      next();
-    } catch (error) {
-      next(error);
+    await Promise.all(validations.map(validation => validation.run(req)));
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
+    next();
   };
 };
 
-// Rate limiting middleware
-const rateLimit = require('express-rate-limit');
-
-const apiLimiter = rateLimit({
+export const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: {
-    success: false,
-    message: 'Too many requests, please try again later.',
-  },
+  max: 100 // limit each IP to 100 requests per windowMs
 });
-
-module.exports = { validateRequest, apiLimiter }; 

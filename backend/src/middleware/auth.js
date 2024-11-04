@@ -1,8 +1,8 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const ApiError = require('../utils/apiResponse');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
+import { ApiError } from '../utils/apiResponse.js';
 
-const auth = async (req, res, next) => {
+export const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
@@ -24,13 +24,10 @@ const auth = async (req, res, next) => {
   }
 };
 
-// Middleware for admin-only routes
-const isAdmin = (req, res, next) => {
+export const isAdmin = async (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {
     next(new ApiError('Admin access required', 403));
   }
-};
-
-module.exports = { auth, isAdmin }; 
+}; 

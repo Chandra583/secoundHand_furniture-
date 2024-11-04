@@ -1,7 +1,13 @@
-const Cart = require('../models/Cart');
-const Product = require('../models/Product');
-const catchAsync = require('../utils/catchAsync');
-const ApiError = require('../utils/apiResponse');
+import Cart from '../models/Cart.js';
+import Product from '../models/Product.js';
+import catchAsync from '../utils/catchAsync.js';
+import { ApiError } from '../utils/apiResponse.js';
+import Joi from 'joi';
+
+export const cartItemSchema = Joi.object({
+  productId: Joi.string().required(),
+  quantity: Joi.number().integer().min(1).required()
+});
 
 const cartController = {
   getCart: catchAsync(async (req, res) => {
@@ -125,4 +131,4 @@ const cartController = {
   }),
 };
 
-module.exports = cartController; 
+export default cartController;

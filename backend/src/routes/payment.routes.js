@@ -1,44 +1,18 @@
-const express = require('express');
+import express from 'express';
+import paymentController from '../controllers/paymentController.js';
+import { auth, isAdmin } from '../middleware/auth.js';
+import { validateRequest } from '../middleware/validate.js';
+import { paymentSchema } from '../utils/validation.js';
+
 const router = express.Router();
-const paymentController = require('../controllers/paymentController');
-const auth = require('../middleware/auth');
-const { isAdmin } = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validate');
-const { paymentSchema } = require('../utils/validation');
 
 // Customer routes
-router.post(
-  '/create-payment-intent',
-  auth,
-  validateRequest(paymentSchema),
-  paymentController.createPaymentIntent
-);
-
-router.post(
-  '/confirm',
-  auth,
-  paymentController.confirmPayment
-);
-
-router.get(
-  '/status/:paymentIntentId',
-  auth,
-  paymentController.getPaymentStatus
-);
+router.post('/create-payment-intent', auth, validateRequest(paymentSchema), paymentController.createPaymentIntent);
+router.post('/confirm', auth, paymentController.confirmPayment);
+router.get('/status/:paymentIntentId', auth, paymentController.getPaymentStatus);
 
 // Admin routes
-router.post(
-  '/:orderId/refund',
-  auth,
-  isAdmin,
-  paymentController.refundPayment
-);
+router.post('/:orderId/refund', auth, isAdmin, paymentController.refundPayment);
+router.get('/admin/transactions', auth, isAdmin, paymentController.getTransactions);
 
-router.get(
-  '/admin/transactions',
-  auth,
-  isAdmin,
-  paymentController.getTransactions
-);
-
-module.exports = router; 
+export default router;
