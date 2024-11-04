@@ -1,7 +1,7 @@
-const multer = require('multer');
-const path = require('path');
-const ApiError = require('../utils/apiResponse');
-const { UPLOAD } = require('../config/constants');
+import multer from 'multer';
+import path from 'path';
+import ApiError from '../utils/apiResponse';
+import { UPLOAD } from '../config/constants';
 
 // Configure storage
 const storage = multer.diskStorage({
@@ -43,7 +43,7 @@ const handleMulterError = (err, req, res, next) => {
   next(err);
 };
 
-module.exports = {
+export {
   upload,
   handleMulterError,
 }; 

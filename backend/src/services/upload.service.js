@@ -1,16 +1,44 @@
-import cloudinary from "cloudinary";
+import fs from 'fs';
+import Product from '../models/Product.js';
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-export const uploadImage = async (file) => {
+export const uploadProductImage = async (productId, file) => {
   try {
-    const result = await cloudinary.uploader.upload(file.path);
-    return result.secure_url;
+    // Read file as Buffer
+    const imageBuffer = fs.readFileSync(file.path);
+    
+    // Find the product
+    const product = await Product.findById(productId);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    // Add image to product
+    product.images.push({
+      name: file.originalname,
+      data: imageBuffer,
+      contentType: file.mimetype
+    });
+
+    // Save the updated product
+    await product.save();
+    
+    // Clean up temporary file
+    fs.unlinkSync(file.path);
+    
+    return product;
   } catch (error) {
-    throw new Error("Image upload failed");
+    throw new Error("Image upload failed: " + error.message);
+  }
+};
+
+export const getProductImages = async (productId) => {
+  try {
+    const product = await Product.findById(productId);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    return product.images;
+  } catch (error) {
+    throw new Error("Image fetch failed: " + error.message);
   }
 };

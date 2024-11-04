@@ -1,15 +1,15 @@
 import Product from '../models/Product.js';
 import catchAsync from '../utils/catchAsync.js';
 import { ApiError } from '../utils/apiResponse.js';
-import { uploadImage } from '../services/upload.service.js';
+// import { uploadImage } from '../services/upload.service.js';
 
 export const createProduct = catchAsync(async (req, res) => {
   const { name, description, price, category, stock } = req.body;
   const images = req.files;
 
   // Upload images
-  const uploadedImages = await Promise.all(
-    images.map(image => uploadImage(image))
+  const uploadProductImage = await Promise.all(
+    images.map(image => uploadProductImage(image))
   );
 
   const product = await Product.create({

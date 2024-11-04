@@ -42,6 +42,11 @@ const productSchema = new mongoose.Schema({
     min: [0, 'Stock cannot be negative'],
     default: 0
   },
+  images: [{
+    name: String,
+    data: Buffer,
+    contentType: String
+  }],
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

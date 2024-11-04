@@ -5,14 +5,19 @@ import { ApiError } from '../utils/apiResponse.js';
 
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
     
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new ApiError(400, 'Email already registered');
     }
 
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ 
+      name, 
+      email, 
+      password,
+      role: role || 'user'
+    });
     
     const token = jwt.sign(
       { userId: user._id },
@@ -26,7 +31,8 @@ export const register = async (req, res, next) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {
